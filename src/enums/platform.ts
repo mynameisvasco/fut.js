@@ -1,5 +1,5 @@
 export enum Platform {
-  Xbox,
-  Playstation,
-  Pc,
+  Xbox = "xbox",
+  Playstation = "playstation",
+  Pc = "pc",
 }

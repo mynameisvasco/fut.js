@@ -46,18 +46,22 @@ export class AccessTokenRequest extends BaseRequest<string> {
     let html: string = loginResponse.data;
     let nextUrl = loginResponse.request.res.responseUrl;
 
+    if (html.includes("Enable two-factor authentication")) {
+      throw new FutException("NoTwoFactor");
+    }
+
+    if (html.includes("Your account has been disabled")) {
+      throw new FutException("Disabled");
+    }
+
     if (html.includes('otkform-group-haserror">')) {
-      if (html.includes("Your EA credentials have expired"))
+      if (html.includes("Your EA credentials have expired")) {
         throw new FutException("ExpiredCredentials");
+      }
 
-      if (html.includes("Your credentials are incorrect"))
+      if (html.includes("Your credentials are incorrect")) {
         throw new FutException("WrongCredentials");
-
-      if (html.includes("Enable two-factor authentication"))
-        throw new FutException("NoTwoFactor");
-
-      if (html.includes("Your account has been disabled"))
-        throw new FutException("Disabled");
+      }
     }
 
     if (html.includes("Please review our terms")) {

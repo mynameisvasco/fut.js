@@ -1,11 +1,9 @@
 import { Sku } from "../enums/sku";
 
-export class AuthenticateUtasParameters {
-  constructor(
-    public readonly personaId: number,
-    public readonly sku: Sku,
-    public readonly gameSku: string,
-    public readonly accessCode: string,
-    public readonly priority: number
-  ) {}
+export interface AuthenticateUtasParameters {
+  personaId: number;
+  sku: Sku;
+  gameSku: string;
+  accessCode: string;
+  priority: number;
 }
