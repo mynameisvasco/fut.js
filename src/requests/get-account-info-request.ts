@@ -5,12 +5,7 @@ import { Sku } from "../enums/sku";
 import { Constants } from "../constants";
 
 export class GetAccountInfoRequest extends BaseRequest<GetAccountInfoResponse> {
-  constructor(
-    private accessCode: string,
-    private nucleusId: number,
-    private shard: string,
-    private sku: Sku
-  ) {
+  constructor(private accessCode: string, private nucleusId: number, private sku: Sku) {
     super();
   }
 
@@ -19,32 +14,20 @@ export class GetAccountInfoRequest extends BaseRequest<GetAccountInfoResponse> {
       Constants.PreviousYearFull
     }&clientVersion=1`;
 
-    try {
-      const response = await httpClient.get(
-        this.shard === "s5"
-          ? `https://${Constants.UtasHost}/ut/game/fifa23/v2/user/accountinfo${query}`
-          : `https://utas.external.${this.shard}.fut.ea.com/ut/game/fifa23/v2/user/accountinfo${query}`,
-        {
-          headers: {
-            Host:
-              this.shard === "s5" ? Constants.UtasHost : `utas.external.${this.shard}.fut.ea.com`,
-            "Easw-Session-Data-Nucleus-Id": this.nucleusId.toString(),
-            "Nucleus-Access-Code": this.accessCode,
-            "Nucleus-Redirect-Url": "nucleus:rest",
-          },
-        }
-      );
-      return response.data as GetAccountInfoResponse;
-    } catch (error: any) {
-      if (!axios.isAxiosError(error)) {
-        throw error;
+    const response = await httpClient.get(
+      `https://${Constants.UtasHost}/ut/game/fc24/v2/user/accountinfo${query}`,
+      {
+        headers: {
+          Host: Constants.UtasHost,
+          "Easw-Session-Data-Nucleus-Id": this.nucleusId.toString(),
+          "Nucleus-Access-Code": this.accessCode,
+          "Nucleus-Redirect-Url": "nucleus:rest",
+          Origin: "https://www.ea.com",
+          Referer: "https://www.ea.com/",
+          "Content-Type": "application/json",
+        },
       }
-
-      if (error.response?.status === 401 || error.response?.status === 465) {
-        return {} as GetAccountInfoResponse;
-      }
-
-      throw error;
-    }
+    );
+    return response.data as GetAccountInfoResponse;
   }
 }

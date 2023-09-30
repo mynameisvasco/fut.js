@@ -1,3 +1,5 @@
+import { ItemCategory } from "../enums/item-category";
+
 export interface ItemData {
   id: number;
   assetId: number;
@@ -11,4 +13,5 @@ export interface ItemData {
   description?: string | null;
   itemState: string;
   itemType: string;
+  category?: ItemCategory;
 }

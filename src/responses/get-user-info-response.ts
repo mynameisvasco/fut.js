@@ -13,5 +13,11 @@ export interface GetUserInfoResponse {
     personaId: number;
     established: string;
     personaName: string;
+    reliability: {
+      finishedMatches: number;
+      matchUnfinishedTime: number;
+      reliability: number;
+      startedMatches: number;
+    };
   };
 }

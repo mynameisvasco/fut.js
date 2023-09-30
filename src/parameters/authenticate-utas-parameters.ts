@@ -1,4 +1,5 @@
 import { Sku } from "../enums/sku";
+import { IJSEngine } from "../interfaces/ijsengine";
 
 export interface AuthenticateUtasParameters {
   personaId: number;
@@ -6,4 +7,5 @@ export interface AuthenticateUtasParameters {
   gameSku: string;
   accessCode: string;
   priority: number;
+  jsEngine?: IJSEngine;
 }

@@ -3,6 +3,8 @@ import { BaseRequest } from "./base-request";
 import { Constants } from "../constants";
 import { LoginParameters } from "../parameters/login-parameters";
 import { FutException } from "../exceptions/fut-exception";
+import { AccessTokenResponse } from "../responses/access-token-response";
+import { CookieJar } from "tough-cookie";
 
 const randomCid = (length: number) => {
   const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
@@ -12,12 +14,12 @@ const randomCid = (length: number) => {
     .join("");
 };
 
-export class AccessTokenRequest extends BaseRequest<string> {
+export class AccessTokenRequest extends BaseRequest<AccessTokenResponse> {
   constructor(private loginParameters: LoginParameters) {
     super();
   }
 
-  protected async perform(httpClient: AxiosInstance): Promise<string> {
+  protected async perform(httpClient: AxiosInstance) {
     const loginUrlResponse = await httpClient.get(Constants.WebAcessTokenUri);
     const loginUrl = loginUrlResponse.request.res.responseUrl;
 
@@ -40,28 +42,32 @@ export class AccessTokenRequest extends BaseRequest<string> {
         _rememberMe: "on",
         rememberMe: "on",
       }),
-      { headers: { Host: Constants.EaSignInHost, Referer: loginUrl } }
+      {
+        headers: {
+          Host: Constants.EaSignInHost,
+          Referer: loginUrl,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
     );
 
     let html: string = loginResponse.data;
     let nextUrl = loginResponse.request.res.responseUrl;
 
     if (html.includes("Enable two-factor authentication")) {
-      throw new FutException("NoTwoFactor");
+      throw new FutException("noTwoFactor");
     }
 
     if (html.includes("Your account has been disabled")) {
-      throw new FutException("Disabled");
+      throw new FutException("disabled");
     }
 
-    if (html.includes('otkform-group-haserror">')) {
-      if (html.includes("Your EA credentials have expired")) {
-        throw new FutException("ExpiredCredentials");
-      }
+    if (html.includes("Your EA credentials have expired")) {
+      throw new FutException("expiredCredentials");
+    }
 
-      if (html.includes("Your credentials are incorrect")) {
-        throw new FutException("WrongCredentials");
-      }
+    if (html.includes("Your credentials are incorrect")) {
+      throw new FutException("wrongCredentials");
     }
 
     if (html.includes("Please review our terms")) {
@@ -72,7 +78,13 @@ export class AccessTokenRequest extends BaseRequest<string> {
           readAccept: "on",
           _eventId: "accept",
         }),
-        { headers: { Host: Constants.EaSignInHost, Referer: nextUrl } }
+        {
+          headers: {
+            Host: Constants.EaSignInHost,
+            Referer: nextUrl,
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        }
       );
 
       html = tosResponse.data;
@@ -90,7 +102,13 @@ export class AccessTokenRequest extends BaseRequest<string> {
           codeType: this.loginParameters.twoFactorProvider.getMethodName(),
           _eventId: "submit",
         }),
-        { headers: { Host: Constants.EaSignInHost, Referer: nextUrl } }
+        {
+          headers: {
+            Host: Constants.EaSignInHost,
+            Referer: nextUrl,
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        }
       );
 
       html = securityResponse.data;
@@ -104,14 +122,20 @@ export class AccessTokenRequest extends BaseRequest<string> {
           trustThisDevice: "on",
           _eventId: "submit",
         }),
-        { headers: { Host: Constants.EaSignInHost, Referer: nextUrl } }
+        {
+          headers: {
+            Host: Constants.EaSignInHost,
+            Referer: nextUrl,
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        }
       );
 
       html = codeResponse.data;
       nextUrl = codeResponse.request.res.responseUrl;
 
       if (html.includes("The security code you entered is invalid")) {
-        throw new FutException("WrongCode");
+        throw new FutException("wrongCode");
       }
 
       [completeUrl] = new RegExp(
@@ -119,12 +143,15 @@ export class AccessTokenRequest extends BaseRequest<string> {
       ).exec(html) ?? [""];
 
       if (!completeUrl || completeUrl === "") {
-        throw new FutException("WrongCode");
+        throw new FutException("wrongCode");
       }
     }
 
     const completeResponse = await httpClient.get(completeUrl);
-    nextUrl = completeResponse.request.res.responseUrl.replace("#", "?");
-    return new URL(nextUrl).searchParams.get("access_token") ?? "";
+    nextUrl = new URL(completeResponse.request.res.responseUrl.replace("#", "?"));
+    const accessToken = nextUrl.searchParams.get("access_token") ?? "";
+    const expiresIn = Number.parseInt(nextUrl.searchParams.get("expires_in") ?? "0");
+    const expiresAt = new Date(Date.now() + expiresIn * 1000);
+    return { accessToken, expiresAt };
   }
 }

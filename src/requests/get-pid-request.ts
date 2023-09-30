@@ -14,6 +14,9 @@ export class GetPidRequest extends BaseRequest<GetPidResponse> {
         Host: Constants.EaGatewayHost,
         Authorization: `Bearer ${this.accessToken}`,
         Accept: "application/json",
+        "Content-Type": "text/plain;charset=UTF-8",
+        Origin: "https://www.ea.com",
+        Referer: "https://www.ea.com/",
       },
     });
 

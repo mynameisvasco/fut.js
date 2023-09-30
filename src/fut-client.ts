@@ -8,12 +8,10 @@ import { GetAccessCodeRequest } from "./requests/get-access-code-request";
 import { GetPidRequest } from "./requests/get-pid-request";
 import { Constants } from "./constants";
 import { GetAccountInfoRequest } from "./requests/get-account-info-request";
-import { GetAccountInfoResponse } from "./responses/get-account-info-response";
 import { Platform } from "./enums/platform";
 import { FutException } from "./exceptions/fut-exception";
 import { AuthenticateUtasRequest } from "./requests/authenticate-utas-request";
 import { GetUserInfoRequest } from "./requests/get-user-info-request";
-import * as crypto from "crypto";
 import { SearchMarketParamters } from "./parameters/search-market-parameters";
 import { SearchMarketRequest } from "./requests/search-market-request";
 import { Pile } from "./enums/pile";
@@ -30,12 +28,26 @@ import { SelectItemRequest } from "./requests/select-item-request";
 import { BuyPackRequest } from "./requests/buy-pack-request";
 import { PreviewPackRequest } from "./requests/preview-pack-request";
 import { GetPacksRequest } from "./requests/get-packs-request";
+import { mapException } from "./models/exception-mapper";
+import { IJSEngine } from "./interfaces/ijsengine";
+import { AuthenticateUtasParameters } from "./parameters/authenticate-utas-parameters";
+import { Sku } from "./enums/sku";
+import { LogoutRequest } from "./requests/logout-request";
+import { StartClubRequest } from "./requests/start-club-request";
+import { SearchClubParamters } from "./parameters/search-club-parameters";
+import { SearchClubRequest } from "./requests/search-club-request";
+import { StadiumTier } from "./enums/stadium-tier";
+import { UpdateStadiumRequest } from "./requests/update-stadium-request";
+import { AutoClaimObjetivesRequest } from "./requests/auto-claim-objectives.request";
+import { AppStatsRequest } from "./requests/appstats-request";
 
 export class FutClient {
   private httpClient: AxiosInstance;
   private cookieJar: CookieJar;
+  private sid: string | undefined;
 
-  constructor(sid?: string, rememberCookie?: string, proxy?: any) {
+  constructor(sid?: string, rememberCookie?: string, proxy?: any, private jsEngine?: IJSEngine) {
+    this.sid = sid;
     this.cookieJar = new CookieJar();
 
     if (rememberCookie) {
@@ -49,173 +61,188 @@ export class FutClient {
       this.cookieJar.setCookie(cookie, "https://ea.com");
     }
 
-    const SocksProxyCookiesAgent = createCookieAgent(SocksProxyAgent);
-    const proxyUrl = `${proxy.protocol}://${proxy.username}:${proxy.password}@${proxy.host}:${proxy.port}`;
-    this.httpClient = axios.create({
-      proxy: false,
-      headers: {
-        "User-Agent": Constants.WebUserAgent,
-        "Keep-Alive": "true",
-        "Content-Type": "application/x-www-form-urlencoded",
-        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "pt-PT;q=0.5",
-        "X-UT-SID": sid ?? null,
-      },
-      httpAgent: new SocksProxyCookiesAgent(proxyUrl, {
-        keepAlive: true,
-        timeout: 60000,
-        scheduling: "fifo",
-        //@ts-ignore
-        cookies: { jar: this.cookieJar },
-      }),
-      httpsAgent: new SocksProxyCookiesAgent(proxyUrl, {
-        keepAlive: true,
-        timeout: 60000,
-        scheduling: "fifo",
-        //@ts-ignore
-        cookies: { jar: this.cookieJar },
-        secureOptions: crypto.constants.SSL_OP_LEGACY_SERVER_CONNECT,
-      }),
-    });
+    try {
+      const SocksProxyCookiesAgent = createCookieAgent(SocksProxyAgent);
+      const proxyUrl = proxy
+        ? `${proxy.protocol}://${proxy.username}:${proxy.password}@${proxy.host}:${proxy.port}`
+        : null;
+
+      this.httpClient = axios.create({
+        proxy: false,
+        headers: {
+          Connection: "keep-alive",
+          "User-Agent": Constants.WebUserAgent,
+          "Accept-Language": "pt-PT;q=0.5",
+          "X-Ut-Sid": sid ?? undefined,
+          Origin: "https://www.ea.com",
+          Referer: "https://www.ea.com",
+        },
+        httpAgent: proxy
+          ? new SocksProxyCookiesAgent(proxyUrl!, {
+              timeout: 60000,
+              //@ts-ignore
+              cookies: { jar: this.cookieJar },
+            })
+          : null,
+        httpsAgent: proxy
+          ? new SocksProxyCookiesAgent(proxyUrl!, {
+              timeout: 60000,
+              //@ts-ignore
+              cookies: { jar: this.cookieJar },
+            })
+          : null,
+      });
+    } catch (e: any) {
+      throw mapException(0, e.message);
+    }
   }
 
-  async login(parameters: LoginParameters) {
-    const accountInfos: GetAccountInfoResponse[] = [];
+  async getAccessToken(parameters: LoginParameters) {
     const accessTokenRequest = new AccessTokenRequest(parameters);
-    const accessToken = await accessTokenRequest.performWithHandling(this.httpClient);
-    const pidRequest = new GetPidRequest(accessToken);
-    const pidResponse = await pidRequest.performWithHandling(this.httpClient);
-    let accessCodeRequest = new GetAccessCodeRequest(accessToken, "shard2");
-    let accessCodeResponse = await accessCodeRequest.performWithHandling(this.httpClient);
-    let accountInfoRequest = new GetAccountInfoRequest(
-      accessCodeResponse.code,
-      pidResponse.pid.pidId,
-      "s2",
-      parameters.sku
+    return await accessTokenRequest.performWithHandling(this.httpClient);
+  }
+
+  async getAccessCode(accessToken: string, sequence: string) {
+    const accessCodeRequest = new GetAccessCodeRequest(accessToken, sequence);
+    return await accessCodeRequest.performWithHandling(this.httpClient);
+  }
+
+  async sendAnalytics(nucleusId: number, personaId: number, sid: string, jsEngine?: IJSEngine) {
+    return new AppStatsRequest(nucleusId, personaId, sid, jsEngine).performWithHandling(
+      this.httpClient
     );
+  }
 
-    accountInfos.push(await accountInfoRequest.performWithHandling(this.httpClient));
-    accessCodeRequest = new GetAccessCodeRequest(accessToken, "shard3");
-    accessCodeResponse = await accessCodeRequest.performWithHandling(this.httpClient);
-    accountInfoRequest = new GetAccountInfoRequest(
-      accessCodeResponse.code,
-      pidResponse.pid.pidId,
-      "s3",
-      parameters.sku
-    );
-
-    accountInfos.push(await accountInfoRequest.performWithHandling(this.httpClient));
-    accessCodeRequest = new GetAccessCodeRequest(accessToken, "shard5");
-    accessCodeResponse = await accessCodeRequest.performWithHandling(this.httpClient);
-    accountInfoRequest = new GetAccountInfoRequest(
-      accessCodeResponse.code,
-      pidResponse.pid.pidId,
-      "s5",
-      parameters.sku
-    );
-
-    accountInfos.push(await accountInfoRequest.performWithHandling(this.httpClient));
-    const namespace =
-      parameters.platform === Platform.Pc
-        ? "cem_ea_id,pc"
-        : parameters.platform === Platform.Xbox
-        ? "360"
-        : "ps3";
-
-    const persona = accountInfos
-      .filter((i) => i.userAccountInfo)
-      .map((i) => i.userAccountInfo)
-      .flatMap((i) => i.personas)
-      .find(
-        (p) =>
-          p.userClubList.find((club: any) => club.year === "2023") &&
-          p.userClubList.find((club: any) => namespace.includes(club.platform))
-      );
-
-    if (!persona) {
-      throw new FutException("WrongPlatform");
-    }
-
-    const club = persona.userClubList.pop()!;
-    const clubGameSku = Object.keys(club.skuAccessList).reduce((a, b) =>
-      club.skuAccessList[a] > club.skuAccessList[b] ? a : b
-    );
-
-    accessCodeRequest = new GetAccessCodeRequest(accessToken, "ut-auth");
-    accessCodeResponse = await accessCodeRequest.performWithHandling(this.httpClient);
+  async getUtas(parameters: AuthenticateUtasParameters) {
     const authenticateUtasRequest = new AuthenticateUtasRequest({
-      personaId: persona.personaId,
+      personaId: parameters.personaId,
       sku: parameters.sku,
-      gameSku: clubGameSku,
-      accessCode: accessCodeResponse.code,
+      gameSku: parameters.gameSku,
+      accessCode: parameters.accessCode,
       priority: parameters.priority,
+      jsEngine: this.jsEngine,
     });
 
     return await authenticateUtasRequest.performWithHandling(this.httpClient);
   }
 
+  async getSelectedPersona(accessToken: string, sku: Sku, platform: Platform) {
+    const pidRequest = new GetPidRequest(accessToken);
+    const pidResponse = await pidRequest.performWithHandling(this.httpClient);
+    const accessCode = await this.getAccessCode(accessToken, "shard5");
+    const accountInfo = await new GetAccountInfoRequest(
+      accessCode.code,
+      pidResponse.pid.pidId,
+      sku
+    ).performWithHandling(this.httpClient);
+
+    const namespace =
+      platform === Platform.Pc ? "cem_ea_id,pc" : platform === Platform.Xbox ? "360" : "ps3";
+
+    const persona = accountInfo.userAccountInfo.personas.find(
+      (p) =>
+        p.userClubList.find((club) => club.year === "2024" || club.year === "2023") &&
+        p.userClubList.find((club) => namespace.includes(club.platform))
+    );
+
+    if (!persona) {
+      throw new FutException("WrongPlatform");
+    }
+
+    const club =
+      persona.userClubList.find((club) => club.year === "2024") ??
+      persona.userClubList.find((club) => club.year === "2023")!;
+
+    const clubGameSku = Object.keys(club.skuAccessList).reduce((a, b) =>
+      club.skuAccessList[a] > club.skuAccessList[b] ? a : b
+    );
+
+    return {
+      persona,
+      clubGameSku: clubGameSku.replace("23", "24"),
+      year: club.year,
+      pidId: pidResponse.pid.pidId,
+    };
+  }
+
   logout() {
-    throw new Error("Method not implemented.");
+    return new LogoutRequest().performWithHandling(this.httpClient);
   }
 
-  async sendCodeToEmail(parameters: LoginParameters) {
+  sendCodeToEmail(parameters: LoginParameters) {
     const accessTokenRequest = new AccessTokenRequest(parameters);
-    await accessTokenRequest.performWithHandling(this.httpClient);
+    return accessTokenRequest.performWithHandling(this.httpClient);
   }
 
-  async searchMarket(parameters: SearchMarketParamters) {
+  claimAllObjectives() {
+    return new AutoClaimObjetivesRequest().performWithHandling(this.httpClient);
+  }
+
+  startClub() {
+    return new StartClubRequest().performWithHandling(this.httpClient);
+  }
+
+  searchMarket(parameters: SearchMarketParamters) {
     return new SearchMarketRequest(parameters).performWithHandling(this.httpClient);
   }
 
-  async getUserMassInfo() {
+  searchClub(parameters: SearchClubParamters) {
+    return new SearchClubRequest(parameters).performWithHandling(this.httpClient);
+  }
+
+  updateStadium(tiers: { tier: StadiumTier; slot: number; itemId: number }[]) {
+    return new UpdateStadiumRequest(tiers).performWithHandling(this.httpClient);
+  }
+
+  getUserMassInfo() {
     return new GetUserInfoRequest().performWithHandling(this.httpClient);
   }
 
-  async getTradepile() {
+  getTradepile() {
     return new GetTradePileRequest().performWithHandling(this.httpClient);
   }
 
-  async getUnassigned() {
+  getUnassigned() {
     return new GetUnassignedPileRequest().performWithHandling(this.httpClient);
   }
 
-  async bidAuction(tradeId: number, bid: number) {
+  bidAuction(tradeId: number, bid: number) {
     return new BidItemRequest(tradeId, bid).performWithHandling(this.httpClient);
   }
 
-  async clearAuction(tradeId: number) {
+  clearAuction(tradeId: number) {
     return new ClearAuctionRequest(tradeId).performWithHandling(this.httpClient);
   }
 
-  async moveItem(itemId: number, pile: Pile) {
+  moveItem(itemId: number, pile: Pile) {
     return new MoveItemRequest(itemId, pile).performWithHandling(this.httpClient);
   }
 
-  async listItem(parameters: ListItemParameters) {
+  listItem(parameters: ListItemParameters) {
     return new ListItemRequest(parameters).performWithHandling(this.httpClient);
   }
 
-  async quickSellItem(itemId: number) {
+  quickSellItem(itemId: number) {
     return new QuickSellItemRequest(itemId).performWithHandling(this.httpClient);
   }
 
-  async redeemItem(itemId: number) {
+  redeemItem(itemId: number) {
     return new RedeemItemRequest(itemId).performWithHandling(this.httpClient);
   }
 
-  async selectItem(resourceId: number) {
+  selectItem(resourceId: number) {
     return new SelectItemRequest(resourceId).performWithHandling(this.httpClient);
   }
 
-  async getPacks() {
+  getPacks() {
     return new GetPacksRequest().performWithHandling(this.httpClient);
   }
 
-  async previewPack(packId: number) {
+  previewPack(packId: number) {
     return new PreviewPackRequest(packId).performWithHandling(this.httpClient);
   }
 
-  async buyPack(packId: number, untradeable: boolean, coins: number) {
+  buyPack(packId: number, untradeable: boolean, coins: number) {
     return new BuyPackRequest(packId, untradeable, coins).performWithHandling(this.httpClient);
   }
 
@@ -224,5 +251,9 @@ export class FutClient {
       this.cookieJar.getCookiesSync("https://ea.com").find((c) => c.key === "_nx_mpcid")?.value ??
       ""
     );
+  }
+
+  getSid() {
+    return this.sid;
   }
 }

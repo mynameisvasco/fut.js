@@ -1,54 +1,60 @@
 import { FutException } from "../exceptions/fut-exception";
 
-export function mapException(status: number, message?: string) {
+export function mapException(status: number, message?: string, parameters?: any) {
   if (
     message?.includes("proxy rejected") ||
-    message?.includes("Authentication failed") ||
-    message?.includes("connection timed out")
+    message?.includes("Socks5 Authentication failed") ||
+    message?.includes("connection timed out") ||
+    message?.includes("network socket disconnected") ||
+    message?.includes("ECONNREFUSED") ||
+    message?.includes("socket hang up") ||
+    message?.includes("write EBADF")
   ) {
-    return new FutException("proxyDown");
+    return new FutException("proxyDown", parameters);
   }
 
   switch (status) {
     case 400:
-      return new FutException("badRequest");
+      return new FutException("badRequest", parameters);
     case 401:
-      return new FutException("expiredSession");
+      return new FutException("expiredSession", parameters);
     case 403:
-      return new FutException("loggedInOnConsole");
+      return new FutException("loggedInOnConsole", parameters);
     case 404:
-      return new FutException("notFound");
+      return new FutException("notFound", parameters);
     case 407:
-      return new FutException("proxyDown");
+      return new FutException("proxyDown", parameters);
     case 409:
-      return new FutException("conflict");
+      return new FutException("conflict", parameters);
     case 410:
-      return new FutException("clearSoldDenied");
+      return new FutException("clearSoldDenied", parameters);
     case 458:
     case 459:
-      return new FutException("captcha");
+      return new FutException("captcha", parameters);
     case 460:
-      return new FutException("badRequest");
+      return new FutException("badRequest", parameters);
     case 461:
-      return new FutException("permissionDenied");
+      return new FutException("permissionDenied", parameters);
     case 470:
-      return new FutException("notEnoughCredit");
+      return new FutException("notEnoughCredit", parameters);
     case 471:
-      return new FutException("purchasedItemsFull");
+      return new FutException("purchasedItemsFull", parameters);
     case 473:
-      return new FutException("destinationFull");
+      return new FutException("destinationFull", parameters);
     case 474:
-      return new FutException("loggedInOnConsole");
+      return new FutException("loggedInOnConsole", parameters);
     case 475:
-      return new FutException("invalidTransaction");
+      return new FutException("invalidTransaction", parameters);
     case 478:
-      return new FutException("noSuchTradeExists");
+      return new FutException("noSuchTradeExists", parameters);
     case 481:
     case 494:
-      return new FutException("noMarket");
+      return new FutException("noMarket", parameters);
+    case 491:
+      return new FutException("disabled", parameters);
     case 512:
     case 521:
-      return new FutException("softBan");
+      return new FutException("softBan", parameters);
     default:
       return null;
   }

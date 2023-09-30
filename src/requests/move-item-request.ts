@@ -3,6 +3,7 @@ import { MoveItemResponse } from "../responses/move-item-response";
 import { BaseRequest } from "./base-request";
 import { Pile } from "../enums/pile";
 import { Constants } from "../constants";
+import { FutException } from "../exceptions/fut-exception";
 
 export class MoveItemRequest extends BaseRequest<MoveItemResponse> {
   constructor(private itemId: number, private pile: Pile) {
@@ -16,6 +17,12 @@ export class MoveItemRequest extends BaseRequest<MoveItemResponse> {
       { headers: { Host: Constants.UtasHost, "Content-Type": "application/json" } }
     );
 
-    return response.data as MoveItemResponse;
+    const data = response.data as MoveItemResponse;
+
+    if (!data.itemData[0]?.success) {
+      throw new FutException("destinationFull");
+    }
+
+    return data;
   }
 }

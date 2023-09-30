@@ -37,15 +37,15 @@ export class SearchMarketRequest extends BaseRequest<SearchMarketResponse> {
       searchQuery.set("lev", this.parameters.level);
     }
 
-    if (this.parameters.nation) {
+    if (this.parameters.nation && this.parameters.nation !== 0) {
       searchQuery.set("nat", this.parameters.nation.toString());
     }
 
-    if (this.parameters.league) {
+    if (this.parameters.league && this.parameters.league !== 0) {
       searchQuery.set("leag", this.parameters.league.toString());
     }
 
-    if (this.parameters.team) {
+    if (this.parameters.team && this.parameters.team !== 0) {
       searchQuery.set("team", this.parameters.team.toString());
     }
 
@@ -53,19 +53,19 @@ export class SearchMarketRequest extends BaseRequest<SearchMarketResponse> {
       searchQuery.set("playStyle", this.parameters.chemistryStyle.toString());
     }
 
-    if (this.parameters.minBuy) {
+    if (this.parameters.minBuy && this.parameters.minBuy !== 0) {
       searchQuery.set("minb", this.parameters.minBuy.toString());
     }
 
-    if (this.parameters.maxBuy) {
+    if (this.parameters.maxBuy && this.parameters.maxBuy !== 0) {
       searchQuery.set("maxb", this.parameters.maxBuy.toString());
     }
 
-    if (this.parameters.minBid) {
+    if (this.parameters.minBid && this.parameters.minBid !== 0) {
       searchQuery.set("micr", this.parameters.minBid.toString());
     }
 
-    if (this.parameters.maxBid) {
+    if (this.parameters.maxBid && this.parameters.maxBid !== 0) {
       searchQuery.set("macr", this.parameters.maxBid.toString());
     }
 
@@ -76,7 +76,6 @@ export class SearchMarketRequest extends BaseRequest<SearchMarketResponse> {
         searchQuery.set("definitionId", this.parameters.resourceId.toString());
       }
     }
-
     if (this.parameters.position) {
       if (this.parameters.position > Position.Gk) {
         searchQuery.set("pos", Position[this.parameters.position].toUpperCase());

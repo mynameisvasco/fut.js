@@ -11,6 +11,7 @@ export interface SearchMarketParamters {
   maxBid?: number;
   level?: Level;
   resourceId?: number;
+  baseId?: number;
   league?: number;
   nation?: number;
   team?: number;

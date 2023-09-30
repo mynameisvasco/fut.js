@@ -12,15 +12,17 @@ export class AuthenticateUtasRequest extends BaseRequest<AuthenticateUtasRespons
 
   protected async perform(httpClient: AxiosInstance) {
     const body = {
-      clientVersion: 12,
-      ds: "",
+      clientVersion: 1,
+      ds: this.parameters.jsEngine
+        ? await this.parameters.jsEngine.getDs(this.parameters.accessCode)
+        : "",
       gameSku: this.parameters.gameSku,
       identification: {
         authCode: this.parameters.accessCode,
         redirectUrl: "nucleus:rest",
         tid: "RETAIL",
       },
-      isReadOnly: "false",
+      isReadOnly: false,
       locale: "en-US",
       method: "authcode",
       nucleusPersonaId: this.parameters.personaId,
@@ -33,6 +35,8 @@ export class AuthenticateUtasRequest extends BaseRequest<AuthenticateUtasRespons
         Host: Constants.UtasHost,
         "X-UT-PHISHING-TOKEN": "0",
         "Content-Type": "application/json",
+        Origin: "https://www.ea.com/",
+        Referer: "https://www.ea.com/",
       },
     });
 
