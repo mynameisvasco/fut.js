@@ -3,6 +3,7 @@ export interface GetUserInfoResponse {
   isHighTierReturningUser: boolean;
   isPlayerPicksTemporaryStorageNotEmpty: boolean;
   userInfo: {
+    feature: { mtx: number; rivals: number; trade: number };
     accountCreatedPlatformName: string;
     clubAbbr: string;
     clubName: string;

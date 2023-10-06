@@ -11,6 +11,7 @@ export abstract class BaseRequest<T> {
       "Socks5 Authentication failed",
       "proxy rejected",
       "connection timed out",
+      "timeout",
       "network socket disconnected",
       "ECONNREFUSED",
       "socket hang up",

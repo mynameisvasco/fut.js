@@ -33,7 +33,7 @@ export class AuthenticateUtasRequest extends BaseRequest<AuthenticateUtasRespons
     const response = await httpClient.post(`https://${Constants.UtasHost}/ut/auth`, body, {
       headers: {
         Host: Constants.UtasHost,
-        "X-UT-PHISHING-TOKEN": "0",
+        "X-Ut-Phishing-Token": "0",
         "Content-Type": "application/json",
         Origin: "https://www.ea.com/",
         Referer: "https://www.ea.com/",

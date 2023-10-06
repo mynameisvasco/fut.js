@@ -4,7 +4,6 @@ import { Constants } from "../constants";
 import { LoginParameters } from "../parameters/login-parameters";
 import { FutException } from "../exceptions/fut-exception";
 import { AccessTokenResponse } from "../responses/access-token-response";
-import { CookieJar } from "tough-cookie";
 
 const randomCid = (length: number) => {
   const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz";
@@ -20,12 +19,30 @@ export class AccessTokenRequest extends BaseRequest<AccessTokenResponse> {
   }
 
   protected async perform(httpClient: AxiosInstance) {
-    const loginUrlResponse = await httpClient.get(Constants.WebAcessTokenUri);
+    const loginUrlResponse = await httpClient.get(Constants.WebAcessTokenUri, {
+      headers: {
+        "Upgrade-Insecure-Requests": 1,
+        Accept:
+          "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+      },
+    });
+
     const loginUrl = loginUrlResponse.request.res.responseUrl;
 
     if (loginUrl.includes("#access_token")) {
       return loginUrl.split("=")[1].split("&")[0].trim();
     }
+
+    await httpClient.post("https://signin.ea.com/p/ajax/funcaptcha/encrypt", undefined, {
+      headers: {
+        Accept: "application/json, text/javascript, */*; q=0.01",
+        Host: "signin.ea.com",
+        "X-Requested-With": "XMLHttpRequest",
+        Referer: loginUrl,
+        Origin: "https://signin.ea.com",
+        "Upgrade-Insecure-Requests": 1,
+      },
+    });
 
     const loginResponse = await httpClient.post(
       loginUrl,
@@ -44,9 +61,13 @@ export class AccessTokenRequest extends BaseRequest<AccessTokenResponse> {
       }),
       {
         headers: {
+          Accept:
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
           Host: Constants.EaSignInHost,
           Referer: loginUrl,
           "Content-Type": "application/x-www-form-urlencoded",
+          Origin: "https://signin.ea.com",
+          "Upgrade-Insecure-Requests": 1,
         },
       }
     );
@@ -70,7 +91,7 @@ export class AccessTokenRequest extends BaseRequest<AccessTokenResponse> {
       throw new FutException("wrongCredentials");
     }
 
-    if (html.includes("Please review our terms")) {
+    if (html.includes("Review our updated terms")) {
       const tosResponse = await httpClient.post(
         nextUrl,
         new URLSearchParams({
@@ -80,9 +101,13 @@ export class AccessTokenRequest extends BaseRequest<AccessTokenResponse> {
         }),
         {
           headers: {
+            Accept:
+              "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
             Host: Constants.EaSignInHost,
             Referer: nextUrl,
             "Content-Type": "application/x-www-form-urlencoded",
+            Origin: "https://signin.ea.com",
+            "Upgrade-Insecure-Requests": 1,
           },
         }
       );
@@ -96,20 +121,41 @@ export class AccessTokenRequest extends BaseRequest<AccessTokenResponse> {
     ).exec(html) ?? [""];
 
     if (completeUrl === "") {
-      const securityResponse = await httpClient.post(
-        nextUrl,
-        new URLSearchParams({
+      let securityParams: any;
+
+      if (this.loginParameters.twoFactorProvider.getMethodName() === "EMAIL") {
+        const regex = new RegExp(".*\\**@.*\\.");
+        const matches = regex.exec(html);
+        const maskedDestination = matches
+          ? matches[0].split("").every((char) => char !== "i") // Check if 'input' is not present
+            ? matches[0].replace("We'll send a verification code to ", "").replace(/\.$/, "")
+            : ""
+          : "";
+        securityParams = new URLSearchParams({
           codeType: this.loginParameters.twoFactorProvider.getMethodName(),
+          _codeType: this.loginParameters.twoFactorProvider.getMethodName(),
           _eventId: "submit",
-        }),
-        {
-          headers: {
-            Host: Constants.EaSignInHost,
-            Referer: nextUrl,
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-        }
-      );
+          maskedDestination,
+        });
+      } else {
+        securityParams = new URLSearchParams({
+          codeType: this.loginParameters.twoFactorProvider.getMethodName(),
+          _codeType: this.loginParameters.twoFactorProvider.getMethodName(),
+          _eventId: "submit",
+        });
+      }
+
+      const securityResponse = await httpClient.post(nextUrl, securityParams, {
+        headers: {
+          Accept:
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+          Host: Constants.EaSignInHost,
+          Referer: nextUrl,
+          "Content-Type": "application/x-www-form-urlencoded",
+          Origin: "https://signin.ea.com",
+          "Upgrade-Insecure-Requests": 1,
+        },
+      });
 
       html = securityResponse.data;
       nextUrl = securityResponse.request.res.responseUrl;
@@ -124,9 +170,13 @@ export class AccessTokenRequest extends BaseRequest<AccessTokenResponse> {
         }),
         {
           headers: {
+            Accept:
+              "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
             Host: Constants.EaSignInHost,
             Referer: nextUrl,
             "Content-Type": "application/x-www-form-urlencoded",
+            Origin: "https://signin.ea.com",
+            "Upgrade-Insecure-Requests": 1,
           },
         }
       );

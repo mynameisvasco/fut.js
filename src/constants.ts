@@ -12,7 +12,7 @@ export class Constants {
   public static readonly BaseUrl = `https://${Constants.UtasHost}/ut/game/fc${Constants.YearShort}`;
   public static readonly EaUrl = "https://ea.com";
   public static readonly WebAcessTokenUri =
-    "https://accounts.ea.com/connect/auth?accessToken=&client_id=FC24_JS_WEB_APP&display=web2/login&hide_create=true&locale=en_US&prompt=login&redirect_uri=https://www.ea.com/pt-br/ea-sports-fc/ultimate-team/web-app/auth.html&release_type=prod&response_type=token&scope=basic.identity+offline+signin+basic.entitlement+basic.persona";
+    "https://accounts.ea.com/connect/auth?accessToken=&client_id=FC24_JS_WEB_APP&display=web2/login&hide_create=true&locale=en_US&prompt=login&redirect_uri=https://www.ea.com/ea-sports-fc/ultimate-team/web-app/auth.html&release_type=prod&response_type=token&scope=basic.identity+offline+signin+basic.entitlement+basic.persona";
   public static readonly MobileAccessTokenUri = `https://accounts.ea.com/connect/auth?accessToken=&client_id=FC24${Constants.YearShort}_COMP_APP&display=web2/login&hide_create=true&locale=en_US&machineProfileKey={Guid.NewGuid().ToString().ToUpperInvariant()}&prompt=login&release_type=prod&response_type=code&scope=basic.identity+offline+signin+basic.entitlement+basic.persona&registration_source=315844&authentication_source=315844`;
   public static readonly IPhoneUserAgent =
     "Mozilla/5.0 (iPhone; CPU iPhone OS 13_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/11.2 Mobile/15E148 Safari/604.1";

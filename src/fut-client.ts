@@ -1,6 +1,7 @@
 import axios, { AxiosInstance } from "axios";
-import { createCookieAgent } from "http-cookie-agent/http";
+import { HttpsCookieAgent, createCookieAgent } from "http-cookie-agent/http";
 import { SocksProxyAgent } from "socks-proxy-agent";
+import { HttpsProxyAgent } from "https-proxy-agent";
 import { Cookie, CookieJar } from "tough-cookie";
 import { LoginParameters } from "./parameters/login-parameters";
 import { AccessTokenRequest } from "./requests/access-token-request";
@@ -41,6 +42,8 @@ import { UpdateStadiumRequest } from "./requests/update-stadium-request";
 import { AutoClaimObjetivesRequest } from "./requests/auto-claim-objectives.request";
 import { AppStatsRequest } from "./requests/appstats-request";
 
+process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = "0";
+
 export class FutClient {
   private httpClient: AxiosInstance;
   private cookieJar: CookieJar;
@@ -61,40 +64,42 @@ export class FutClient {
       this.cookieJar.setCookie(cookie, "https://ea.com");
     }
 
-    try {
-      const SocksProxyCookiesAgent = createCookieAgent(SocksProxyAgent);
-      const proxyUrl = proxy
-        ? `${proxy.protocol}://${proxy.username}:${proxy.password}@${proxy.host}:${proxy.port}`
-        : null;
+    const SocksProxyCookiesAgent = createCookieAgent(SocksProxyAgent);
+    const HttpsProxyCookiesAgent = createCookieAgent(HttpsProxyAgent);
 
-      this.httpClient = axios.create({
-        proxy: false,
-        headers: {
-          Connection: "keep-alive",
-          "User-Agent": Constants.WebUserAgent,
-          "Accept-Language": "pt-PT;q=0.5",
-          "X-Ut-Sid": sid ?? undefined,
-          Origin: "https://www.ea.com",
-          Referer: "https://www.ea.com",
-        },
-        httpAgent: proxy
-          ? new SocksProxyCookiesAgent(proxyUrl!, {
-              timeout: 60000,
-              //@ts-ignore
-              cookies: { jar: this.cookieJar },
-            })
-          : null,
-        httpsAgent: proxy
-          ? new SocksProxyCookiesAgent(proxyUrl!, {
-              timeout: 60000,
-              //@ts-ignore
-              cookies: { jar: this.cookieJar },
-            })
-          : null,
-      });
-    } catch (e: any) {
-      throw mapException(0, e.message);
-    }
+    const proxyUrl = proxy
+      ? `${proxy.protocol}://${proxy.username}:${proxy.password}@${proxy.host}:${proxy.port}`
+      : "";
+
+    this.httpClient = axios.create({
+      proxy: false,
+      timeout: 60_000,
+      headers: {
+        Accept: "*/*",
+        Connection: "keep-alive",
+        "User-Agent": Constants.WebUserAgent,
+        "Accept-Language": "pt-PT,pt;q=0.9",
+        "Accept-Encoding": "gzip, deflate, br, zstd",
+        "X-Ut-Sid": sid ?? undefined,
+        Origin: "https://www.ea.com",
+        Referer: "https://www.ea.com",
+      },
+      httpsAgent: !proxy
+        ? new HttpsCookieAgent({ cookies: { jar: this.cookieJar } })
+        : proxy.protocol === "socks"
+        ? new SocksProxyCookiesAgent(proxyUrl, {
+            timeout: 60_000,
+            //@ts-ignore
+            rejectUnauthorized: false,
+            cookies: { jar: this.cookieJar },
+          })
+        : new HttpsProxyCookiesAgent(proxyUrl, {
+            timeout: 60_000,
+            rejectUnauthorized: false,
+            //@ts-ignore
+            cookies: { jar: this.cookieJar },
+          }),
+    });
   }
 
   async getAccessToken(parameters: LoginParameters) {
@@ -108,7 +113,7 @@ export class FutClient {
   }
 
   async sendAnalytics(nucleusId: number, personaId: number, sid: string, jsEngine?: IJSEngine) {
-    return new AppStatsRequest(nucleusId, personaId, sid, jsEngine).performWithHandling(
+    return await new AppStatsRequest(nucleusId, personaId, sid, jsEngine).performWithHandling(
       this.httpClient
     );
   }
@@ -126,15 +131,17 @@ export class FutClient {
     return await authenticateUtasRequest.performWithHandling(this.httpClient);
   }
 
+  async getAccountInfo(accessCode: string, pidId: number, sku: Sku) {
+    return await new GetAccountInfoRequest(accessCode, pidId, sku).performWithHandling(
+      this.httpClient
+    );
+  }
+
   async getSelectedPersona(accessToken: string, sku: Sku, platform: Platform) {
     const pidRequest = new GetPidRequest(accessToken);
     const pidResponse = await pidRequest.performWithHandling(this.httpClient);
     const accessCode = await this.getAccessCode(accessToken, "shard5");
-    const accountInfo = await new GetAccountInfoRequest(
-      accessCode.code,
-      pidResponse.pid.pidId,
-      sku
-    ).performWithHandling(this.httpClient);
+    const accountInfo = await this.getAccountInfo(accessCode.code, pidResponse.pid.pidId, sku);
 
     const namespace =
       platform === Platform.Pc ? "cem_ea_id,pc" : platform === Platform.Xbox ? "360" : "ps3";
@@ -146,7 +153,7 @@ export class FutClient {
     );
 
     if (!persona) {
-      throw new FutException("WrongPlatform");
+      throw new FutException("wrongPlatform");
     }
 
     const club =
@@ -165,85 +172,87 @@ export class FutClient {
     };
   }
 
-  logout() {
-    return new LogoutRequest().performWithHandling(this.httpClient);
+  async logout() {
+    return await new LogoutRequest().performWithHandling(this.httpClient);
   }
 
-  sendCodeToEmail(parameters: LoginParameters) {
+  async sendCodeToEmail(parameters: LoginParameters) {
     const accessTokenRequest = new AccessTokenRequest(parameters);
     return accessTokenRequest.performWithHandling(this.httpClient);
   }
 
-  claimAllObjectives() {
-    return new AutoClaimObjetivesRequest().performWithHandling(this.httpClient);
+  async claimAllObjectives() {
+    return await new AutoClaimObjetivesRequest().performWithHandling(this.httpClient);
   }
 
-  startClub() {
-    return new StartClubRequest().performWithHandling(this.httpClient);
+  async startClub() {
+    return await new StartClubRequest().performWithHandling(this.httpClient);
   }
 
-  searchMarket(parameters: SearchMarketParamters) {
-    return new SearchMarketRequest(parameters).performWithHandling(this.httpClient);
+  async searchMarket(parameters: SearchMarketParamters) {
+    return await new SearchMarketRequest(parameters).performWithHandling(this.httpClient);
   }
 
-  searchClub(parameters: SearchClubParamters) {
-    return new SearchClubRequest(parameters).performWithHandling(this.httpClient);
+  async searchClub(parameters: SearchClubParamters) {
+    return await new SearchClubRequest(parameters).performWithHandling(this.httpClient);
   }
 
-  updateStadium(tiers: { tier: StadiumTier; slot: number; itemId: number }[]) {
-    return new UpdateStadiumRequest(tiers).performWithHandling(this.httpClient);
+  async updateStadium(tiers: { tier: StadiumTier; slot: number; itemId: number }[]) {
+    return await new UpdateStadiumRequest(tiers).performWithHandling(this.httpClient);
   }
 
-  getUserMassInfo() {
-    return new GetUserInfoRequest().performWithHandling(this.httpClient);
+  async getUserMassInfo() {
+    return await new GetUserInfoRequest().performWithHandling(this.httpClient);
   }
 
-  getTradepile() {
-    return new GetTradePileRequest().performWithHandling(this.httpClient);
+  async getTradepile() {
+    return await new GetTradePileRequest().performWithHandling(this.httpClient);
   }
 
-  getUnassigned() {
-    return new GetUnassignedPileRequest().performWithHandling(this.httpClient);
+  async getUnassigned() {
+    return await new GetUnassignedPileRequest().performWithHandling(this.httpClient);
   }
 
-  bidAuction(tradeId: number, bid: number) {
-    return new BidItemRequest(tradeId, bid).performWithHandling(this.httpClient);
+  async bidAuction(tradeId: number, bid: number) {
+    return await new BidItemRequest(tradeId, bid).performWithHandling(this.httpClient);
   }
 
-  clearAuction(tradeId: number) {
-    return new ClearAuctionRequest(tradeId).performWithHandling(this.httpClient);
+  async clearAuction(tradeId: number) {
+    return await new ClearAuctionRequest(tradeId).performWithHandling(this.httpClient);
   }
 
-  moveItem(itemId: number, pile: Pile) {
-    return new MoveItemRequest(itemId, pile).performWithHandling(this.httpClient);
+  async moveItem(itemId: number, pile: Pile) {
+    return await new MoveItemRequest(itemId, pile).performWithHandling(this.httpClient);
   }
 
-  listItem(parameters: ListItemParameters) {
-    return new ListItemRequest(parameters).performWithHandling(this.httpClient);
+  async listItem(parameters: ListItemParameters) {
+    return await new ListItemRequest(parameters).performWithHandling(this.httpClient);
   }
 
-  quickSellItem(itemId: number) {
-    return new QuickSellItemRequest(itemId).performWithHandling(this.httpClient);
+  async quickSellItem(itemId: number) {
+    return await new QuickSellItemRequest(itemId).performWithHandling(this.httpClient);
   }
 
-  redeemItem(itemId: number) {
-    return new RedeemItemRequest(itemId).performWithHandling(this.httpClient);
+  async redeemItem(itemId: number) {
+    return await new RedeemItemRequest(itemId).performWithHandling(this.httpClient);
   }
 
-  selectItem(resourceId: number) {
-    return new SelectItemRequest(resourceId).performWithHandling(this.httpClient);
+  async selectItem(resourceId: number) {
+    return await new SelectItemRequest(resourceId).performWithHandling(this.httpClient);
   }
 
-  getPacks() {
-    return new GetPacksRequest().performWithHandling(this.httpClient);
+  async getPacks() {
+    return await new GetPacksRequest().performWithHandling(this.httpClient);
   }
 
-  previewPack(packId: number) {
-    return new PreviewPackRequest(packId).performWithHandling(this.httpClient);
+  async previewPack(packId: number) {
+    return await new PreviewPackRequest(packId).performWithHandling(this.httpClient);
   }
 
-  buyPack(packId: number, untradeable: boolean, coins: number) {
-    return new BuyPackRequest(packId, untradeable, coins).performWithHandling(this.httpClient);
+  async buyPack(packId: number, untradeable: boolean, coins: number) {
+    return await new BuyPackRequest(packId, untradeable, coins).performWithHandling(
+      this.httpClient
+    );
   }
 
   getRememberCookie() {

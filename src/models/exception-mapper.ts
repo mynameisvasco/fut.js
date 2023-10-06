@@ -8,7 +8,8 @@ export function mapException(status: number, message?: string, parameters?: any)
     message?.includes("network socket disconnected") ||
     message?.includes("ECONNREFUSED") ||
     message?.includes("socket hang up") ||
-    message?.includes("write EBADF")
+    message?.includes("write EBADF") ||
+    message?.includes("timeout")
   ) {
     return new FutException("proxyDown", parameters);
   }

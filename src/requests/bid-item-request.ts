@@ -15,12 +15,19 @@ export class BidItemRequest extends BaseRequest<BidItemResponse> {
       {
         headers: { Host: Constants.UtasHost, "Content-Type": "application/json" },
         validateStatus: (status: number) => {
-          return status === 200 || status === 461 || status === 478 || status === 460;
+          return (
+            status === 200 || status === 461 || status === 478 || status === 460 || status === 429
+          );
         },
       }
     );
 
-    if (response.status === 461 || response.status === 478 || response.status === 460) {
+    if (
+      response.status === 461 ||
+      response.status === 478 ||
+      response.status === 460 ||
+      response.status === 429
+    ) {
       return { auctionInfo: [], credits: 0, duplicatedItemIdList: [] } as BidItemResponse;
     }
 

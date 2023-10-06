@@ -8,6 +8,6 @@ export class BackupProvider implements ITwoFactorProvider {
   }
 
   getMethodName() {
-    return "APP";
+    return "EMAIL";
   }
 }
