@@ -1,6 +1,6 @@
 {
   "name": "@mynameisvasco27/fut.js",
-  "version": "1.1.23",
+  "version": "1.1.41",
   "description": "Fut api",
   "main": "index.js",
   "type": "module",
@@ -11,7 +11,7 @@
   "scripts": {
     "test": "node --experimental-specifier-resolution=node src/test.js",
     "build": "tsc",
-    "pub": "cp package.json dist/ && cd dist/ && npm publish --access public"
+    "pub": "npm publish --access public"
   },
   "author": "",
   "license": "ISC",
