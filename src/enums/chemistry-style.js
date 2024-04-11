@@ -1,0 +1,28 @@
+export var ChemistryStyle;
+(function (ChemistryStyle) {
+    ChemistryStyle[ChemistryStyle["All"] = 0] = "All";
+    ChemistryStyle[ChemistryStyle["Basic"] = 250] = "Basic";
+    ChemistryStyle[ChemistryStyle["Sniper"] = 251] = "Sniper";
+    ChemistryStyle[ChemistryStyle["Finisher"] = 252] = "Finisher";
+    ChemistryStyle[ChemistryStyle["DeadEye"] = 253] = "DeadEye";
+    ChemistryStyle[ChemistryStyle["Marksman"] = 254] = "Marksman";
+    ChemistryStyle[ChemistryStyle["Hawk"] = 255] = "Hawk";
+    ChemistryStyle[ChemistryStyle["Artist"] = 256] = "Artist";
+    ChemistryStyle[ChemistryStyle["Architect"] = 257] = "Architect";
+    ChemistryStyle[ChemistryStyle["Powerhouse"] = 258] = "Powerhouse";
+    ChemistryStyle[ChemistryStyle["Maestro"] = 259] = "Maestro";
+    ChemistryStyle[ChemistryStyle["Engine"] = 260] = "Engine";
+    ChemistryStyle[ChemistryStyle["Sentinel"] = 261] = "Sentinel";
+    ChemistryStyle[ChemistryStyle["Guardian"] = 262] = "Guardian";
+    ChemistryStyle[ChemistryStyle["Gladiator"] = 263] = "Gladiator";
+    ChemistryStyle[ChemistryStyle["Backbone"] = 264] = "Backbone";
+    ChemistryStyle[ChemistryStyle["Anchor"] = 265] = "Anchor";
+    ChemistryStyle[ChemistryStyle["Hunter"] = 266] = "Hunter";
+    ChemistryStyle[ChemistryStyle["Catalyst"] = 267] = "Catalyst";
+    ChemistryStyle[ChemistryStyle["Shadow"] = 268] = "Shadow";
+    ChemistryStyle[ChemistryStyle["Wall"] = 269] = "Wall";
+    ChemistryStyle[ChemistryStyle["Shield"] = 270] = "Shield";
+    ChemistryStyle[ChemistryStyle["Cat"] = 271] = "Cat";
+    ChemistryStyle[ChemistryStyle["Glove"] = 272] = "Glove";
+    ChemistryStyle[ChemistryStyle["GkBasic"] = 273] = "GkBasic";
+})(ChemistryStyle || (ChemistryStyle = {}));

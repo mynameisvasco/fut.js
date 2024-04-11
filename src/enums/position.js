@@ -1,0 +1,24 @@
+export var Position;
+(function (Position) {
+    Position[Position["All"] = 0] = "All";
+    Position[Position["Defense"] = 1] = "Defense";
+    Position[Position["Midfield"] = 2] = "Midfield";
+    Position[Position["Attacker"] = 3] = "Attacker";
+    Position[Position["Gk"] = 4] = "Gk";
+    Position[Position["Rwb"] = 5] = "Rwb";
+    Position[Position["Rb"] = 6] = "Rb";
+    Position[Position["Cb"] = 7] = "Cb";
+    Position[Position["Lb"] = 8] = "Lb";
+    Position[Position["Lwb"] = 9] = "Lwb";
+    Position[Position["Cdm"] = 10] = "Cdm";
+    Position[Position["Rm"] = 11] = "Rm";
+    Position[Position["Cm"] = 12] = "Cm";
+    Position[Position["Lm"] = 13] = "Lm";
+    Position[Position["Cam"] = 14] = "Cam";
+    Position[Position["Rf"] = 15] = "Rf";
+    Position[Position["Cf"] = 16] = "Cf";
+    Position[Position["Lf"] = 17] = "Lf";
+    Position[Position["Rw"] = 18] = "Rw";
+    Position[Position["St"] = 19] = "St";
+    Position[Position["Lw"] = 20] = "Lw";
+})(Position || (Position = {}));

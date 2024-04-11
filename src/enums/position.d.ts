@@ -1,0 +1,23 @@
+export declare enum Position {
+    All = 0,
+    Defense = 1,
+    Midfield = 2,
+    Attacker = 3,
+    Gk = 4,
+    Rwb = 5,
+    Rb = 6,
+    Cb = 7,
+    Lb = 8,
+    Lwb = 9,
+    Cdm = 10,
+    Rm = 11,
+    Cm = 12,
+    Lm = 13,
+    Cam = 14,
+    Rf = 15,
+    Cf = 16,
+    Lf = 17,
+    Rw = 18,
+    St = 19,
+    Lw = 20
+}

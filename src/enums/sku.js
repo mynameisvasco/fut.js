@@ -1,0 +1,26 @@
+export var Sku;
+(function (Sku) {
+    Sku[Sku["FUT23AND"] = 0] = "FUT23AND";
+    Sku[Sku["FUT23IOS"] = 1] = "FUT23IOS";
+    Sku[Sku["FFA23PCC"] = 2] = "FFA23PCC";
+    Sku[Sku["FFA23PS4"] = 3] = "FFA23PS4";
+    Sku[Sku["FFA23PS5"] = 4] = "FFA23PS5";
+    Sku[Sku["FFA23STA"] = 5] = "FFA23STA";
+    Sku[Sku["FFA23STM"] = 6] = "FFA23STM";
+    Sku[Sku["FFA23SWI"] = 7] = "FFA23SWI";
+    Sku[Sku["UNKNOWN"] = 8] = "UNKNOWN";
+    Sku[Sku["FUT23WEB"] = 9] = "FUT23WEB";
+    Sku[Sku["FFA23XBO"] = 10] = "FFA23XBO";
+    Sku[Sku["FFA23XSX"] = 11] = "FFA23XSX";
+    Sku[Sku["FFA24XBO"] = 12] = "FFA24XBO";
+    Sku[Sku["FFA24XSX"] = 13] = "FFA24XSX";
+    Sku[Sku["FUT24AND"] = 14] = "FUT24AND";
+    Sku[Sku["FUT24IOS"] = 15] = "FUT24IOS";
+    Sku[Sku["FFA24PCC"] = 16] = "FFA24PCC";
+    Sku[Sku["FFA24PS4"] = 17] = "FFA24PS4";
+    Sku[Sku["FFA24PS5"] = 18] = "FFA24PS5";
+    Sku[Sku["FFA24STA"] = 19] = "FFA24STA";
+    Sku[Sku["FFA24STM"] = 20] = "FFA24STM";
+    Sku[Sku["FFA24SWI"] = 21] = "FFA24SWI";
+    Sku[Sku["FUT24WEB"] = 22] = "FUT24WEB";
+})(Sku || (Sku = {}));
