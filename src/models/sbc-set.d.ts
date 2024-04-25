@@ -5,6 +5,7 @@ export declare class SbcSet {
   startTime: number;
   categoryId: number;
   description: string;
+  challengeId: number;
   challengesCount: number;
   hidden: true;
   tagged: number;

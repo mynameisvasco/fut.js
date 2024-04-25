@@ -139,6 +139,7 @@ export declare class FutClient {
   getChemistryProfile(): Promise<
     import("./responses/get-chemistry-profile-response").GetChemistryProfileResponse
   >;
+  startSbcChallenge(challengeId: number): Promise<void>;
   getRememberCookie(): string;
   getSid(): string | undefined;
 }

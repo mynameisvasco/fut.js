@@ -1,5 +1,5 @@
-import { SbcSet } from "../models/sbc-set";
+import { SbcChallenge } from "../models/sbc-challenge";
 
 export interface GetSbcSetResponse {
-  challenges: SbcSet[];
+  challenges: SbcChallenge[];
 }
