@@ -135,6 +135,7 @@ export declare class FutClient {
   submitSbcChallenge(
     challengeId: number
   ): Promise<import("./responses/submit-sbc-set-response").SubmitSbcSetResponse>;
+  startSbcChallenge(challengeId: number): Promise<void>;
   getRememberCookie(): string;
   getSid(): string | undefined;
 }

@@ -1,4 +1,5 @@
 export interface SearchClubParamters {
-    type: string;
-    page: number;
+  type: string;
+  page: number;
+  defId?: string;
 }

@@ -37,6 +37,7 @@ import { GetSbcSetRequest } from "./requests/get-sbc-sets-request";
 import { GetSbcSetSquadRequest } from "./requests/get-sbc-set-squad-request";
 import { UpdateSbcSetSquadRequest } from "./requests/update-sbc-set-squad-request";
 import { SubmitSbcSetRequest } from "./requests/submit-sbc-set-request";
+import { StartSbcSetRequest } from "./requests/start-sbc-set-request";
 
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = "0";
 export class FutClient {
@@ -227,6 +228,9 @@ export class FutClient {
   async getSbcChallenges(sbcId) {
     return await new GetSbcSetRequest(sbcId).performWithHandling(this.httpClient);
   }
+  async startSbcChallenge(challengeId) {
+    return await new StartSbcSetRequest(challengeId).performWithHandling(this.httpClient);
+  }
   async getSbcChallengeSquad(challengeId) {
     return await new GetSbcSetSquadRequest(challengeId).performWithHandling(this.httpClient);
   }
@@ -238,6 +242,7 @@ export class FutClient {
   async submitSbcChallenge(challengeId) {
     return await new SubmitSbcSetRequest(challengeId).performWithHandling(this.httpClient);
   }
+
   getRememberCookie() {
     return (
       this.cookieJar.getCookiesSync("https://ea.com").find((c) => c.key === "_nx_mpcid")?.value ??
