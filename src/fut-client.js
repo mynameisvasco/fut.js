@@ -37,6 +37,7 @@ import { GetSbcSetRequest } from "./requests/get-sbc-sets-request";
 import { GetSbcSetSquadRequest } from "./requests/get-sbc-set-squad-request";
 import { UpdateSbcSetSquadRequest } from "./requests/update-sbc-set-squad-request";
 import { SubmitSbcSetRequest } from "./requests/submit-sbc-set-request";
+import { GetChemistryProfileRequest } from "./requests/get-chemistry-profile-request";
 
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = "0";
 export class FutClient {
@@ -235,8 +236,13 @@ export class FutClient {
       this.httpClient
     );
   }
-  async submitSbcChallenge(challengeId) {
-    return await new SubmitSbcSetRequest(challengeId).performWithHandling(this.httpClient);
+  async submitSbcChallenge(challengeId, chemistryProfilesVersion) {
+    return await new SubmitSbcSetRequest(challengeId, chemistryProfilesVersion).performWithHandling(
+      this.httpClient
+    );
+  }
+  async getChemistryProfile() {
+    return await new GetChemistryProfileRequest().performWithHandling(this.httpClient);
   }
   getRememberCookie() {
     return (

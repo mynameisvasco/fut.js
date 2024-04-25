@@ -133,8 +133,12 @@ export declare class FutClient {
     squad: { index: number; itemId: number }[]
   ): Promise<void>;
   submitSbcChallenge(
-    challengeId: number
+    challengeId: number,
+    chemistryProfilesVersion: number
   ): Promise<import("./responses/submit-sbc-set-response").SubmitSbcSetResponse>;
+  getChemistryProfile(): Promise<
+    import("./responses/get-chemistry-profile-response").GetChemistryProfileResponse
+  >;
   getRememberCookie(): string;
   getSid(): string | undefined;
 }

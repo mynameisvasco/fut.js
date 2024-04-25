@@ -1,17 +1,9 @@
-import { FutClient } from "./fut-client";
+import { FutClient } from "./fut-client.js";
 
 async function main() {
-  const fut = new FutClient("394e25fd-0049-4646-a539-f4ba2f5a055a");
+  const fut = new FutClient("9efcd4db-fb78-4d14-ad72-be7ad9f2d040");
 
-  await fut.updateSbcChallengeSquad(4, [
-    { index: 2, itemId: 225173966620 },
-    { index: 3, itemId: 225173966650 },
-    { index: 6, itemId: 225173966627 },
-    { index: 9, itemId: 225173966631 },
-  ]);
-
-  await new Promise((resolve) => setTimeout(resolve, 2000));
-  console.log(await fut.submitSbcChallenge(4));
+  console.log(await fut.getChemistryProfile());
 }
 
 main();
