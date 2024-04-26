@@ -3,15 +3,15 @@ import { Constants } from "../constants";
 
 export class SubmitSbcSetRequest extends BaseRequest {
   challengeId;
-  chemistryProfilesVersion;
-  constructor(challengeId, chemistryProfilesVersion) {
+  chemistryProfileVersion;
+  constructor(challengeId, chemistryProfileVersion) {
     super();
     this.challengeId = challengeId;
-    this.chemistryProfilesVersion = chemistryProfilesVersion;
+    this.chemistryProfileVersion = chemistryProfileVersion;
   }
   async perform(httpClient) {
     const response = await httpClient.put(
-      `${Constants.BaseUrl}/sbs/challenge/${this.challengeId}?skipUserSquadValidation=true&chemistryProfilesVersion=${chemistryProfilesVersion}`,
+      `${Constants.BaseUrl}/sbs/challenge/${this.challengeId}?skipUserSquadValidation=true&chemistryProfilesVersion=${this.chemistryProfileVersion}`,
       { headers: { Host: Constants.UtasHost, "Content-Type": "application/json" } }
     );
 

@@ -240,8 +240,8 @@ export class FutClient {
       this.httpClient
     );
   }
-  async submitSbcChallenge(challengeId, chemistryProfilesVersion) {
-    return await new SubmitSbcSetRequest(challengeId, chemistryProfilesVersion).performWithHandling(
+  async submitSbcChallenge(challengeId, chemistryProfileVersion) {
+    return await new SubmitSbcSetRequest(challengeId, chemistryProfileVersion).performWithHandling(
       this.httpClient
     );
   }

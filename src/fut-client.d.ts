@@ -134,7 +134,7 @@ export declare class FutClient {
   ): Promise<void>;
   submitSbcChallenge(
     challengeId: number,
-    chemistryProfilesVersion: number
+    chemistryProfileVersion: number
   ): Promise<import("./responses/submit-sbc-set-response").SubmitSbcSetResponse>;
   getChemistryProfile(): Promise<
     import("./responses/get-chemistry-profile-response").GetChemistryProfileResponse

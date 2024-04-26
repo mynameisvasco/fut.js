@@ -4,8 +4,8 @@ import { SubmitSbcSetResponse } from "../responses/submit-sbc-set-response";
 
 export declare class SubmitSbcSetRequest extends BaseRequest<SubmitSbcSetResponse> {
   challengeId: number;
-  chemistryProfilesVersion: number;
+  chemistryProfileVersion: number;
 
-  constructor(challengeId: number, chemistryProfilesVersion: number);
+  constructor(challengeId: number, chemistryProfileVersion: number);
   protected perform(httpClient: AxiosInstance): Promise<SubmitSbcSetResponse>;
 }
