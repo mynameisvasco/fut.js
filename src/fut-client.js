@@ -40,7 +40,6 @@ import { SubmitSbcSetRequest } from "./requests/submit-sbc-set-request";
 import { GetChemistryProfileRequest } from "./requests/get-chemistry-profile-request";
 import { StartSbcSetRequest } from "./requests/start-sbc-set-request";
 
-process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = "0";
 export class FutClient {
   jsEngine;
   httpClient;
@@ -64,9 +63,9 @@ export class FutClient {
     const proxyUrl = proxy
       ? `${proxy.protocol}://${proxy.username}:${proxy.password}@${proxy.host}:${proxy.port}`
       : "";
+
     this.httpClient = axios.create({
-      proxy: false,
-      timeout: 60_000,
+      timeout: 30000,
       headers: {
         Accept: "*/*",
         Connection: "keep-alive",
@@ -79,17 +78,14 @@ export class FutClient {
       },
       httpsAgent: !proxy
         ? new HttpsCookieAgent({ cookies: { jar: this.cookieJar } })
-        : proxy.protocol === "socks"
+        : proxy.protocol.startsWith("socks")
         ? new SocksProxyCookiesAgent(proxyUrl, {
-            timeout: 60_000,
-            //@ts-ignore
             rejectUnauthorized: false,
             cookies: { jar: this.cookieJar },
+            //@ts-ignore
           })
         : new HttpsProxyCookiesAgent(proxyUrl, {
-            timeout: 60_000,
             rejectUnauthorized: false,
-            //@ts-ignore
             cookies: { jar: this.cookieJar },
           }),
     });
@@ -133,26 +129,26 @@ export class FutClient {
     const persona =
       accountInfo.userAccountInfo.personas.find(
         (p) =>
-          p.userClubList.find((club) => club.year === "2024") &&
+          p.userClubList.find((club) => club.year === "2025") &&
           p.userClubList.find((club) => namespace.includes(club.platform))
       ) ??
       accountInfo.userAccountInfo.personas.find(
         (p) =>
-          p.userClubList.find((club) => club.year === "2023") &&
+          p.userClubList.find((club) => club.year === "2024") &&
           p.userClubList.find((club) => namespace.includes(club.platform))
       );
     if (!persona) {
       throw new FutException("wrongPlatform");
     }
     const club =
-      persona.userClubList.find((club) => club.year === "2024") ??
-      persona.userClubList.find((club) => club.year === "2023");
+      persona.userClubList.find((club) => club.year === "2025") ??
+      persona.userClubList.find((club) => club.year === "2024");
     const clubGameSku = Object.keys(club.skuAccessList).reduce((a, b) =>
       club.skuAccessList[a] > club.skuAccessList[b] ? a : b
     );
     return {
       persona,
-      clubGameSku: clubGameSku.replace("23", "24"),
+      clubGameSku: clubGameSku.replace("24", "25"),
       year: club.year,
       pidId: pidResponse.pid.pidId,
     };
