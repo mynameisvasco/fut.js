@@ -5,7 +5,7 @@ export class Constants {
   static PreviousYearFull = "2024";
   static SearchMarketPageSize = 21;
   static CodeClientId = "FUTWEB_BK_OL_SERVER";
-  static UtasHost = "utas.mob.v3.prd.futc-ext.gcp.ea.com";
+  static UtasHost = "utas.mob.v4.prd.futc-ext.gcp.ea.com";
   static EaGatewayHost = "gateway.ea.com";
   static EaAccountsHost = "accounts.ea.com";
   static EaSignInHost = "signin.ea.com";

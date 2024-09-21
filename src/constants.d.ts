@@ -5,7 +5,7 @@ export declare class Constants {
   static readonly PreviousYearFull = "2024";
   static readonly SearchMarketPageSize = 21;
   static readonly CodeClientId = "FUTWEB_BK_OL_SERVER";
-  static readonly UtasHost = "utas.mob.v3.prd.futc-ext.gcp.ea.com";
+  static readonly UtasHost = "utas.mob.v4.prd.futc-ext.gcp.ea.com";
   static readonly EaGatewayHost = "gateway.ea.com";
   static readonly EaAccountsHost = "accounts.ea.com";
   static readonly EaSignInHost = "signin.ea.com";
