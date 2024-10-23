@@ -44,28 +44,21 @@ export class AccessTokenRequest extends BaseRequest {
     if (loginUrl.includes("#access_token")) {
       return loginUrl.split("=")[1].split("&")[0].trim();
     }
-    await httpClient.post("https://signin.ea.com/p/ajax/funcaptcha/encrypt", undefined, {
-      headers: {
-        Accept: "application/json, text/javascript, */*; q=0.01",
-        Host: "signin.ea.com",
-        "X-Requested-With": "XMLHttpRequest",
-        Referer: loginUrl,
-        Origin: "https://signin.ea.com",
-        "Upgrade-Insecure-Requests": 1,
-      },
-    });
+
     const emailResponse = await httpClient.post(
       loginUrl,
       new URLSearchParams({
         email: this.loginParameters.email,
         regionCode: "US",
         phoneNumber: "",
-        password: "",
+        password: this.loginParameters.password,
         _eventId: "submit",
-        cid: "",
+        cid: randomCid(32),
         showAgeUp: "true",
+        thirdPartyCaptchaResponse: "",
         loginMethod: "emailPassword",
         _rememberMe: "on",
+        rememberMe: "on",
       }),
       {
         headers: {
@@ -81,33 +74,7 @@ export class AccessTokenRequest extends BaseRequest {
     );
 
     let nextUrl = emailResponse.request.res.responseUrl;
-
-    const passwordResponse = await httpClient.post(
-      nextUrl,
-      new URLSearchParams({
-        email: this.loginParameters.email,
-        password: this.loginParameters.password,
-        _eventId: "submit",
-        cid: randomCid(32),
-        showAgeUp: "true",
-        thirdPartyCaptchaResponse: "",
-        loginMethod: "emailPassword",
-      }),
-      {
-        headers: {
-          Accept:
-            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-          Host: Constants.EaSignInHost,
-          Referer: loginUrl,
-          "Content-Type": "application/x-www-form-urlencoded",
-          Origin: "https://signin.ea.com",
-          "Upgrade-Insecure-Requests": 1,
-        },
-      }
-    );
-
-    let html = passwordResponse.data;
-    nextUrl = passwordResponse.request.res.responseUrl;
+    let html = emailResponse.data;
 
     if (html.includes("Enable two-factor authentication")) {
       throw new FutException("noTwoFactor");
